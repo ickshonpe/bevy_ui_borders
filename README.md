@@ -3,7 +3,7 @@
 [![MIT/Apache 2.0](https://img.shields.io/badge/license-MIT%2FApache-blue.svg)](https://github.com/ickshonpe/bevy_ui_borders)
 [![crates.io](https://img.shields.io/crates/d/bevy_ui_borders)](https://crates.io/crates/bevy_ui_borders)
 
-Draw borders around Bevy UI Nodes!
+## Draw borders around Bevy UI Nodes
 
 ![image](borders_example.png)
 
