@@ -24,7 +24,7 @@ cargo add bevy_ui_borders
 
 To display a bordered UI node:
 * Add the `BordersPlugin` plugin to your app.
-* Spawn an entity that has a `NodeBundle` with the `border` field of its `Style` component set to a non-zero thickness and a `BorderBundle`.
+* Spawn an entity with a `BorderBundle` and a `NodeBundle` where the `border` field of its `Style` component is set to a non-zero thickness.
 
 ## Example
 
