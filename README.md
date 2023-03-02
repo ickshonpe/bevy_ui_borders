@@ -5,7 +5,7 @@
 
 Draw borders around Bevy UI Nodes!
 
-![image](borders.png)
+![image](borders_example.png)
 
 * Supports Bevy 0.9, with Bevy 0.10 support coming at its release.
 
