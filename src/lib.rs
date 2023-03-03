@@ -1,3 +1,5 @@
+mod outline;
+
 use bevy::prelude::*;
 use bevy::render::Extract;
 use bevy::ui::ExtractedUiNode;
@@ -6,6 +8,11 @@ use bevy::ui::RenderUiSystem;
 use bevy::ui::UiStack;
 use bevy::ui::UiSystem;
 use bevy::window::WindowId;
+
+pub use outline::OutlineBundle;
+pub use outline::OutlineColor;
+pub use outline::Outline;
+pub use outline::CalculatedOutline;
 
 /// The color of a UI node's border.
 #[derive(Component, Copy, Clone, Default, Debug, Deref, DerefMut, Reflect)]
@@ -61,9 +68,9 @@ fn resolve_thickness(value: Val, parent_width: f32) -> f32 {
     }
 }
 
-#[allow(clippy::type_complexity)]
 /// Generates the border geometry
-fn calculate_borders_system(
+#[allow(clippy::type_complexity)]
+fn calculate_borders(
     parent_query: Query<&Node, With<Children>>,
     mut border_query: Query<
         (&Node, &Style, &mut CalculatedBorder, Option<&Parent>),
@@ -74,8 +81,7 @@ fn calculate_borders_system(
     >,
 ) {
     for (node, style, mut calculated_border, parent) in border_query.iter_mut() {
-        let node_size = node.size();
-        if node_size.x <= 0. || node_size.y <= 0. {
+        if node.size().x <= 0. || node.size().y <= 0. {
             calculated_border.edges = [None; 4];
             continue;
         }
@@ -91,7 +97,7 @@ fn calculate_borders_system(
         let bottom = resolve_thickness(border.bottom, parent_width);
 
         // calculate border rects, ensuring that they don't overlap
-        let max = 0.5 * node_size;
+        let max = 0.5 * node.size();
         let min = -max;
         let inner_min = min + Vec2::new(left, top);
         let inner_max = (max - Vec2::new(right, bottom)).max(inner_min);
@@ -188,7 +194,11 @@ impl Plugin for BordersPlugin {
             .register_type::<CalculatedBorder>()
             .add_system_to_stage(
                 CoreStage::PostUpdate,
-                calculate_borders_system.after(UiSystem::Flex),
+                calculate_borders.after(UiSystem::Flex),
+            )
+            .add_system_to_stage(
+                CoreStage::PostUpdate,
+                outline::calculate_outlines.after(UiSystem::Flex),
             );
 
         let render_app = match app.get_sub_app_mut(bevy::render::RenderApp) {
@@ -199,6 +209,11 @@ impl Plugin for BordersPlugin {
         render_app.add_system_to_stage(
             bevy::render::RenderStage::Extract,
             extract_uinode_borders.after(RenderUiSystem::ExtractNode),
+        );
+
+        render_app.add_system_to_stage(
+            bevy::render::RenderStage::Extract,
+            outline::extract_uinode_outlines.after(RenderUiSystem::ExtractNode),
         );
     }
 }

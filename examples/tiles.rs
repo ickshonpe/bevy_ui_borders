@@ -102,7 +102,7 @@ fn setup(mut commands: Commands) {
                     style: Style {
                         size: Size::new(Val::Px(50.), Val::Px(50.)),
                         border: borders[i % borders.len()],
-                        margin: UiRect::all(Val::Px(2.)),
+                        margin: UiRect::all(Val::Px(7.)),
                         align_items: AlignItems::Center,
                         justify_content: JustifyContent::Center,
                         ..Default::default()
@@ -111,6 +111,11 @@ fn setup(mut commands: Commands) {
                     ..Default::default()
                 },
                 BorderBundle::default(),
+                OutlineBundle {
+                    outline: Outline::all(Val::Px(5.)),                        
+                    outline_color: Color::BLUE.into(),
+                    ..Default::default()
+                },
             ))
             .add_child(inner_spot)
             .id();
