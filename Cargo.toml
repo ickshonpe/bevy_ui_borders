@@ -12,7 +12,7 @@ description = "Bevy UI borders plugin"
 [dependencies.bevy]
 version = "0.10.0"
 default_features= false
-features = ["bevy_ui"]
+features = ["bevy_ui", "bevy_render"]
 
 [dev-dependencies]
 bevy = "0.10.0"
