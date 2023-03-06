@@ -36,7 +36,7 @@ impl From<Color> for OutlineColor {
 }
 
 /// Stores the calculated outline geometry
-/// 
+///
 /// This is automatically managed by the borders plugin.
 #[derive(Component, Copy, Clone, Debug, Default, Reflect)]
 #[reflect(Component)]
@@ -101,7 +101,7 @@ pub struct OutlinedNodeBundle {
     /// The color of the outline
     pub outline_color: OutlineColor,
     /// Stores the calculated outline geometry
-    /// 
+    ///
     /// This is automatically managed by the borders plugin.
     pub calculated_outline: CalculatedOutline,
 }
@@ -124,7 +124,6 @@ impl Default for OutlinedNodeBundle {
             outline: Default::default(),
             outline_color: Default::default(),
             calculated_outline: Default::default(),
-            
         }
     }
 }

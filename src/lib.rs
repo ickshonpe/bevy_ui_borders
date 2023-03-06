@@ -68,7 +68,6 @@ impl Default for BorderedNodeBundle {
         }
     }
 }
-    
 
 /// The color of a UI node's border.
 #[derive(Component, Copy, Clone, Default, Debug, Deref, DerefMut, Reflect)]
