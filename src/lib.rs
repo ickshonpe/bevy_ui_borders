@@ -4,18 +4,71 @@ use bevy::prelude::*;
 use bevy::render::Extract;
 use bevy::ui::ExtractedUiNode;
 use bevy::ui::ExtractedUiNodes;
+use bevy::ui::FocusPolicy;
 use bevy::ui::RenderUiSystem;
 use bevy::ui::UiStack;
 use bevy::ui::UiSystem;
 
+pub use outline::CalculatedOutline;
+pub use outline::Outline;
 pub use outline::OutlineBundle;
 pub use outline::OutlineColor;
-pub use outline::Outline;
-pub use outline::CalculatedOutline;
 
+/// The basic UI node but with a Border
+///
+/// Useful as a container for a variety of child nodes.
+#[derive(Bundle, Clone, Debug)]
 pub struct BorderedNodeBundle {
-    
+    /// Describes the logical size of the node
+    pub node: Node,
+    /// Describes the style including flexbox settings
+    pub style: Style,
+    /// The background color, which serves as a "fill" for this node
+    pub background_color: BackgroundColor,
+    /// Whether this node should block interaction with lower nodes
+    pub focus_policy: FocusPolicy,
+    /// The transform of the node
+    ///
+    /// This field is automatically managed by the UI layout system.
+    /// To alter the position of the `nodebundle`, use the properties of the [`Style`] component.
+    pub transform: Transform,
+    /// The global transform of the node
+    ///
+    /// This field is automatically managed by the UI layout system.
+    /// To alter the position of the `NodeBundle`, use the properties of the [`Style`] component.
+    pub global_transform: GlobalTransform,
+    /// Describes the visibility properties of the node
+    pub visibility: Visibility,
+    /// Algorithmically-computed indication of whether an entity is visible and should be extracted for rendering
+    pub computed_visibility: ComputedVisibility,
+    /// Indicates the depth at which the node should appear in the UI
+    pub z_index: ZIndex,
+    /// The color of the node's border.
+    pub border_color: BorderColor,
+    /// Stores the calculated border geometry
+    /// This is automatically managed by the borders plugin.
+    pub calculated_border: CalculatedBorder,
 }
+
+impl Default for BorderedNodeBundle {
+    fn default() -> Self {
+        BorderedNodeBundle {
+            // Transparent background
+            background_color: Color::NONE.into(),
+            node: Default::default(),
+            style: Default::default(),
+            focus_policy: Default::default(),
+            transform: Default::default(),
+            global_transform: Default::default(),
+            visibility: Default::default(),
+            computed_visibility: Default::default(),
+            z_index: Default::default(),
+            border_color: Color::WHITE.into(),
+            calculated_border: Default::default(),
+        }
+    }
+}
+    
 
 /// The color of a UI node's border.
 #[derive(Component, Copy, Clone, Default, Debug, Deref, DerefMut, Reflect)]
@@ -49,7 +102,10 @@ impl Default for CalculatedBorder {
 /// Add a border bundle to a ui node to draw its border
 #[derive(Bundle, Copy, Clone, Default)]
 pub struct BorderBundle {
+    /// The color of the node's border.
     pub border_color: BorderColor,
+    /// Stores the calculated border geometry
+    /// This is automatically managed by the borders plugin.
     pub calculated_border: CalculatedBorder,
 }
 
@@ -155,7 +211,6 @@ fn extract_uinode_borders(
         >,
     >,
 ) {
-
     let image = bevy::render::texture::DEFAULT_IMAGE_HANDLE.typed();
 
     for (stack_index, entity) in ui_stack.uinodes.iter().enumerate() {
@@ -199,12 +254,14 @@ impl Plugin for BordersPlugin {
             .register_type::<OutlineColor>()
             .register_type::<CalculatedOutline>()
             .add_system(
-                calculate_borders.after(UiSystem::Flex)
-                .in_base_set(CoreSet::PostUpdate),
+                calculate_borders
+                    .after(UiSystem::Flex)
+                    .in_base_set(CoreSet::PostUpdate),
             )
             .add_system(
-                outline::calculate_outlines.after(UiSystem::Flex)
-                .in_base_set(CoreSet::PostUpdate),
+                outline::calculate_outlines
+                    .after(UiSystem::Flex)
+                    .in_base_set(CoreSet::PostUpdate),
             );
 
         let render_app = match app.get_sub_app_mut(bevy::render::RenderApp) {
@@ -213,11 +270,15 @@ impl Plugin for BordersPlugin {
         };
 
         render_app.add_system(
-            extract_uinode_borders.after(RenderUiSystem::ExtractNode).in_schedule(ExtractSchedule)
+            extract_uinode_borders
+                .after(RenderUiSystem::ExtractNode)
+                .in_schedule(ExtractSchedule),
         );
 
         render_app.add_system(
-            outline::extract_uinode_outlines.after(RenderUiSystem::ExtractNode).in_schedule(ExtractSchedule)
+            outline::extract_uinode_outlines
+                .after(RenderUiSystem::ExtractNode)
+                .in_schedule(ExtractSchedule),
         );
     }
 }

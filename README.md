@@ -13,6 +13,9 @@
 
 * No support for border styles due to the limitations of the current Bevy UI renderer.
 
+* Version 0.2 adds support for outlines. Outlines are similar to borders but drawn outside the node on the edge of the node boundary
+and occupy no space in the UI layout.
+
 #
 ## Usage
 
@@ -59,6 +62,8 @@ fn main() {
         .run();
 }
 ```
+* You also use `BorderedNodeBundle` and `OutlinedNodeBundle` instead of of a `NodeBudle` bundle tuple
+to spawn bordered and outlined UI nodes.
 
 #
 ## Examples

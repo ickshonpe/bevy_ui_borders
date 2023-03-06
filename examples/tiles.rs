@@ -112,7 +112,7 @@ fn setup(mut commands: Commands) {
                 },
                 BorderBundle::default(),
                 OutlineBundle {
-                    outline: Outline::all(Val::Px(5.)),                        
+                    outline: Outline::all(Val::Px(5.)),
                     outline_color: Color::BLUE.into(),
                     ..Default::default()
                 },

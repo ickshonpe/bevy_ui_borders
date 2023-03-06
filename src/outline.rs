@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use bevy::render::Extract;
 use bevy::ui::ExtractedUiNode;
 use bevy::ui::ExtractedUiNodes;
+use bevy::ui::FocusPolicy;
 use bevy::ui::UiStack;
 
 use crate::resolve_thickness;
@@ -22,7 +23,7 @@ impl From<UiRect> for Outline {
         Self(value)
     }
 }
-    
+
 /// The color of the outline
 #[derive(Component, Copy, Clone, Default, Debug, Deref, DerefMut, Reflect)]
 #[reflect(Component)]
@@ -35,6 +36,8 @@ impl From<Color> for OutlineColor {
 }
 
 /// Stores the calculated outline geometry
+/// 
+/// This is automatically managed by the borders plugin.
 #[derive(Component, Copy, Clone, Debug, Default, Reflect)]
 #[reflect(Component)]
 pub struct CalculatedOutline {
@@ -49,7 +52,6 @@ pub struct OutlineBundle {
     pub calculated_outline: CalculatedOutline,
 }
 
-
 impl OutlineBundle {
     pub fn new(edges: UiRect, color: Color) -> OutlineBundle {
         Self {
@@ -60,15 +62,80 @@ impl OutlineBundle {
     }
 }
 
+/// The basic UI node but with a Border and Outline
+///
+/// Useful as a container for a variety of child nodes.
+#[derive(Bundle, Clone, Debug)]
+pub struct OutlinedNodeBundle {
+    /// Describes the logical size of the node
+    pub node: Node,
+    /// Describes the style including flexbox settings
+    pub style: Style,
+    /// The background color, which serves as a "fill" for this node
+    pub background_color: BackgroundColor,
+    /// Whether this node should block interaction with lower nodes
+    pub focus_policy: FocusPolicy,
+    /// The transform of the node
+    ///
+    /// This field is automatically managed by the UI layout system.
+    /// To alter the position of the `nodebundle`, use the properties of the [`Style`] component.
+    pub transform: Transform,
+    /// The global transform of the node
+    ///
+    /// This field is automatically managed by the UI layout system.
+    /// To alter the position of the `NodeBundle`, use the properties of the [`Style`] component.
+    pub global_transform: GlobalTransform,
+    /// Describes the visibility properties of the node
+    pub visibility: Visibility,
+    /// Algorithmically-computed indication of whether an entity is visible and should be extracted for rendering
+    pub computed_visibility: ComputedVisibility,
+    /// Indicates the depth at which the node should appear in the UI
+    pub z_index: ZIndex,
+    /// The color of the node's border.
+    pub border_color: crate::BorderColor,
+    /// Stores the calculated border geometry
+    /// This is automatically managed by the borders plugin.
+    pub calculated_border: crate::CalculatedBorder,
+    /// The thicknesses of the four sides of the outline
+    pub outline: Outline,
+    /// The color of the outline
+    pub outline_color: OutlineColor,
+    /// Stores the calculated outline geometry
+    /// 
+    /// This is automatically managed by the borders plugin.
+    pub calculated_outline: CalculatedOutline,
+}
+
+impl Default for OutlinedNodeBundle {
+    fn default() -> Self {
+        OutlinedNodeBundle {
+            // Transparent background
+            background_color: Color::NONE.into(),
+            node: Default::default(),
+            style: Default::default(),
+            focus_policy: Default::default(),
+            transform: Default::default(),
+            global_transform: Default::default(),
+            visibility: Default::default(),
+            computed_visibility: Default::default(),
+            z_index: Default::default(),
+            border_color: Color::WHITE.into(),
+            calculated_border: Default::default(),
+            outline: Default::default(),
+            outline_color: Default::default(),
+            calculated_outline: Default::default(),
+            
+        }
+    }
+}
+
 /// Generates the outline geometry
 #[allow(clippy::type_complexity)]
-pub (crate) fn calculate_outlines(
+pub(crate) fn calculate_outlines(
     parent_query: Query<&Node, With<Children>>,
     mut outline_query: Query<
         (&Node, &Outline, &mut CalculatedOutline, Option<&Parent>),
-        (
-            Or<(Changed<Node>, Changed<Outline>, Changed<Parent>)>,
-        ),
+        (Or<(Changed<Node>, Changed<Outline>, Changed<Parent>)>,),
     >,
 ) {
     for (node, outline, mut calculated_outline, parent) in outline_query.iter_mut() {
@@ -122,7 +189,7 @@ pub (crate) fn calculate_outlines(
 }
 
 #[allow(clippy::type_complexity)]
-pub (crate) fn extract_uinode_outlines(
+pub(crate) fn extract_uinode_outlines(
     mut extracted_uinodes: ResMut<ExtractedUiNodes>,
     ui_stack: Extract<Res<UiStack>>,
     uinode_query: Extract<
