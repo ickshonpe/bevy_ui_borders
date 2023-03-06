@@ -10,9 +10,9 @@ readme = "README.md"
 description = "Bevy UI borders plugin"
 
 [dependencies.bevy]
-version = "0.9"
+version = "0.10.0"
 default_features= false
-features = ["render"]
+features = ["bevy_ui"]
 
 [dev-dependencies]
-bevy = "0.9"
+bevy = "0.10.0"

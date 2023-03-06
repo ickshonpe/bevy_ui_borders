@@ -7,7 +7,7 @@
 
 ![image](borders_example.png)
 
-* Supports Bevy 0.9, with Bevy 0.10 support coming at its release.
+* Version 0.2 supports Bevy 0.10, 0.1 supports Bevy 0.9.
 
 * Same implementation as this borders PR: https://github.com/bevyengine/bevy/pull/7795
 
@@ -66,4 +66,5 @@ fn main() {
 ```
 cargo --run --example minimal
 cargo --run --example tiles
+cargo --run --example outlines
 ```

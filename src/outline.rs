@@ -3,11 +3,10 @@ use bevy::render::Extract;
 use bevy::ui::ExtractedUiNode;
 use bevy::ui::ExtractedUiNodes;
 use bevy::ui::UiStack;
-use bevy::window::WindowId;
 
 use crate::resolve_thickness;
 
-/// Outline around a UI node's outline
+/// Outline around the UI node's border that doesn't occupy any space in the UI layout.
 #[derive(Component, Copy, Clone, Default, Debug, Deref, DerefMut, Reflect)]
 #[reflect(Component)]
 pub struct Outline(pub UiRect);
@@ -15,6 +14,12 @@ pub struct Outline(pub UiRect);
 impl Outline {
     pub fn all(thickness: Val) -> Self {
         Self(UiRect::all(thickness))
+    }
+}
+
+impl From<UiRect> for Outline {
+    fn from(value: UiRect) -> Self {
+        Self(value)
     }
 }
     
@@ -42,6 +47,17 @@ pub struct OutlineBundle {
     pub outline: Outline,
     pub outline_color: OutlineColor,
     pub calculated_outline: CalculatedOutline,
+}
+
+
+impl OutlineBundle {
+    pub fn new(edges: UiRect, color: Color) -> OutlineBundle {
+        Self {
+            outline: edges.into(),
+            outline_color: OutlineColor(color),
+            calculated_outline: CalculatedOutline::default(),
+        }
+    }
 }
 
 /// Generates the outline geometry
@@ -107,7 +123,6 @@ pub (crate) fn calculate_outlines(
 
 #[allow(clippy::type_complexity)]
 pub (crate) fn extract_uinode_outlines(
-    windows: Extract<Res<Windows>>,
     mut extracted_uinodes: ResMut<ExtractedUiNodes>,
     ui_stack: Extract<Res<UiStack>>,
     uinode_query: Extract<
@@ -123,7 +138,6 @@ pub (crate) fn extract_uinode_outlines(
         >,
     >,
 ) {
-    let scale_factor = windows.scale_factor(WindowId::primary()) as f32;
     let image = bevy::render::texture::DEFAULT_IMAGE_HANDLE.typed();
 
     for (stack_index, entity) in ui_stack.uinodes.iter().enumerate() {
@@ -141,7 +155,7 @@ pub (crate) fn extract_uinode_outlines(
                 extracted_uinodes.uinodes.push(ExtractedUiNode {
                     stack_index,
                     transform: transform * Mat4::from_translation(outline_rect.center().extend(0.)),
-                    background_color: **outline_color,
+                    color: **outline_color,
                     rect: Rect {
                         max: outline_rect.size(),
                         ..Default::default()
@@ -149,7 +163,8 @@ pub (crate) fn extract_uinode_outlines(
                     image: image.clone_weak(),
                     atlas_size: None,
                     clip: clip.map(|clip| clip.clip),
-                    scale_factor,
+                    flip_x: false,
+                    flip_y: false,
                 });
             }
         }

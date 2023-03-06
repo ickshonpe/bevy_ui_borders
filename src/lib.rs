@@ -7,12 +7,15 @@ use bevy::ui::ExtractedUiNodes;
 use bevy::ui::RenderUiSystem;
 use bevy::ui::UiStack;
 use bevy::ui::UiSystem;
-use bevy::window::WindowId;
 
 pub use outline::OutlineBundle;
 pub use outline::OutlineColor;
 pub use outline::Outline;
 pub use outline::CalculatedOutline;
+
+pub struct BorderedNodeBundle {
+    
+}
 
 /// The color of a UI node's border.
 #[derive(Component, Copy, Clone, Default, Debug, Deref, DerefMut, Reflect)]
@@ -137,7 +140,6 @@ fn calculate_borders(
 
 #[allow(clippy::type_complexity)]
 fn extract_uinode_borders(
-    windows: Extract<Res<Windows>>,
     mut extracted_uinodes: ResMut<ExtractedUiNodes>,
     ui_stack: Extract<Res<UiStack>>,
     uinode_query: Extract<
@@ -153,7 +155,7 @@ fn extract_uinode_borders(
         >,
     >,
 ) {
-    let scale_factor = windows.scale_factor(WindowId::primary()) as f32;
+
     let image = bevy::render::texture::DEFAULT_IMAGE_HANDLE.typed();
 
     for (stack_index, entity) in ui_stack.uinodes.iter().enumerate() {
@@ -171,7 +173,7 @@ fn extract_uinode_borders(
                 extracted_uinodes.uinodes.push(ExtractedUiNode {
                     stack_index,
                     transform: transform * Mat4::from_translation(border_rect.center().extend(0.)),
-                    background_color: **border_color,
+                    color: **border_color,
                     rect: Rect {
                         max: border_rect.size(),
                         ..Default::default()
@@ -179,7 +181,8 @@ fn extract_uinode_borders(
                     image: image.clone_weak(),
                     atlas_size: None,
                     clip: clip.map(|clip| clip.clip),
-                    scale_factor,
+                    flip_x: false,
+                    flip_y: false,
                 });
             }
         }
@@ -192,13 +195,16 @@ impl Plugin for BordersPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<BorderColor>()
             .register_type::<CalculatedBorder>()
-            .add_system_to_stage(
-                CoreStage::PostUpdate,
-                calculate_borders.after(UiSystem::Flex),
+            .register_type::<Outline>()
+            .register_type::<OutlineColor>()
+            .register_type::<CalculatedOutline>()
+            .add_system(
+                calculate_borders.after(UiSystem::Flex)
+                .in_base_set(CoreSet::PostUpdate),
             )
-            .add_system_to_stage(
-                CoreStage::PostUpdate,
-                outline::calculate_outlines.after(UiSystem::Flex),
+            .add_system(
+                outline::calculate_outlines.after(UiSystem::Flex)
+                .in_base_set(CoreSet::PostUpdate),
             );
 
         let render_app = match app.get_sub_app_mut(bevy::render::RenderApp) {
@@ -206,14 +212,12 @@ impl Plugin for BordersPlugin {
             Err(_) => return,
         };
 
-        render_app.add_system_to_stage(
-            bevy::render::RenderStage::Extract,
-            extract_uinode_borders.after(RenderUiSystem::ExtractNode),
+        render_app.add_system(
+            extract_uinode_borders.after(RenderUiSystem::ExtractNode).in_schedule(ExtractSchedule)
         );
 
-        render_app.add_system_to_stage(
-            bevy::render::RenderStage::Extract,
-            outline::extract_uinode_outlines.after(RenderUiSystem::ExtractNode),
+        render_app.add_system(
+            outline::extract_uinode_outlines.after(RenderUiSystem::ExtractNode).in_schedule(ExtractSchedule)
         );
     }
 }
