@@ -35,8 +35,8 @@ fn spawn_example(mut commands: Commands) {
                             background_color: Color::NAVY.into(),
                             ..Default::default()
                         },
-                        BorderBundle::new(Color::RED),
-                        OutlineBundle::new(UiRect::all(Val::Px(10.)), Color::WHITE),
+                        BorderColor(Color::RED),
+                        Outline::all(Color::WHITE, Val::Px(10.)),
                     ));
                     parent.spawn((
                         NodeBundle {
@@ -48,7 +48,7 @@ fn spawn_example(mut commands: Commands) {
                             background_color: Color::GREEN.into(),
                             ..Default::default()
                         },
-                        BorderBundle::new(Color::DARK_GREEN),
+                        BorderColor(Color::DARK_GREEN),
                     ));
                 });
             parent
@@ -70,7 +70,7 @@ fn spawn_example(mut commands: Commands) {
                             background_color: Color::NAVY.into(),
                             ..Default::default()
                         },
-                        BorderBundle::new(Color::RED),
+                        BorderColor(Color::RED),
                     ));
                     parent.spawn((
                         NodeBundle {
@@ -82,8 +82,8 @@ fn spawn_example(mut commands: Commands) {
                             background_color: Color::GREEN.into(),
                             ..Default::default()
                         },
-                        BorderBundle::new(Color::DARK_GREEN),
-                        OutlineBundle::new(UiRect::all(Val::Px(10.)), Color::WHITE),
+                        BorderColor(Color::DARK_GREEN),
+                        Outline::all(Color::WHITE, Val::Px(10.)),
                     ));
                 });
         });
