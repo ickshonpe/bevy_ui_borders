@@ -9,9 +9,9 @@
 
 * A Bevy plugin that adds border and outline rendering to UI nodes.
 
-* Versions 0.2+ support Bevy 0.10, 0.1 supports Bevy 0.9.
+* Supports Bevy 0.10
 
-* No support for border styles due to the limitations of the current Bevy UI renderer.
+* Only supports solid one-colour borders due to the limitations of the current Bevy UI renderer.
 
 
 #
@@ -23,6 +23,10 @@ Add the dependency to your Bevy project:
 cargo add bevy_ui_borders
 ```
 
+To display a bordered UI node:
+* Add the `BordersPlugin` plugin to your app.
+* Spawn an entity with a `BorderColor` component and a `NodeBundle` where the `border` field of its `Style` component is set to a non-zero thickness.
+
 ## Components
 
 * `BorderColor`: Defines the color of a UI node's border.
@@ -32,12 +36,7 @@ cargo add bevy_ui_borders
 * `BorderedNodeBundle`: A bundle for creating UI nodes with a border and outline.
 * `BorderBundle`: A bundle for adding border and outline components to an existing UI node.
 
-## Plugin
-`BordersPlugin` should be added to your Bevy app to enable bordered UI nodes.
 
-To display a bordered UI node:
-* Add the `BordersPlugin` plugin to your app.
-* Spawn an entity with a `BorderColor` component and a `NodeBundle` where the `border` field of its `Style` component is set to a non-zero thickness.
 
 ## Example
 
