@@ -22,21 +22,18 @@ impl From<Color> for BorderColor {
 #[reflect(Component)]
 pub struct Outline {
     pub color: Color,
-    pub thickness: UiRect, 
+    pub thickness: UiRect,
 }
 
 impl Outline {
     pub fn new(color: Color, thickness: UiRect) -> Self {
-        Self {
-            color,
-            thickness
-        }
+        Self { color, thickness }
     }
 
     pub fn all(color: Color, thickness: Val) -> Self {
         Self {
             color,
-            thickness: UiRect::all(thickness)
+            thickness: UiRect::all(thickness),
         }
     }
 }
@@ -90,7 +87,7 @@ impl Default for BorderedNodeBundle {
             computed_visibility: Default::default(),
             z_index: Default::default(),
             border_color: Color::WHITE.into(),
-            outline: Default::default()
+            outline: Default::default(),
         }
     }
 }
@@ -113,12 +110,7 @@ fn resolve_thickness(value: Val, parent_width: f32) -> f32 {
     }
 }
 
-const fn edge_rects(
-    min: Vec2,
-    max: Vec2,
-    inner_min: Vec2,
-    inner_max: Vec2,
-) -> [Rect; 4] {
+const fn edge_rects(min: Vec2, max: Vec2, inner_min: Vec2, inner_max: Vec2) -> [Rect; 4] {
     [
         // Left
         Rect {
@@ -162,17 +154,21 @@ fn extract_uinode_borders(
             Without<CalculatedSize>,
         >,
     >,
-    parent_node_query: Extract<
-        Query<
-            &Node, With<Parent>
-        >
-    >
+    parent_node_query: Extract<Query<&Node, With<Parent>>>,
 ) {
     let image = bevy::render::texture::DEFAULT_IMAGE_HANDLE.typed();
 
     for (stack_index, entity) in ui_stack.uinodes.iter().enumerate() {
-        if let Ok((node, global_transform, style, maybe_border_color, maybe_outline, parent, visibility, clip)) =
-            uinode_query.get(*entity)
+        if let Ok((
+            node,
+            global_transform,
+            style,
+            maybe_border_color,
+            maybe_outline,
+            parent,
+            visibility,
+            clip,
+        )) = uinode_query.get(*entity)
         {
             if !visibility.is_visible() || node.size().x <= 0. || node.size().y <= 0. {
                 continue;
@@ -182,16 +178,20 @@ fn extract_uinode_borders(
             let transform = global_transform.compute_matrix();
 
             let mut maybe_parent_width = None;
-            let get_parent_width = || parent
-                .and_then(|parent| parent_node_query.get(parent.get()).ok())
-                .map(|parent_node| parent_node.size().x)
-                .unwrap_or(0.);
-            
-            if let Some(border_color) = maybe_border_color.filter(|border_color| border_color.a() != 0.) {                
+            let get_parent_width = || {
+                parent
+                    .and_then(|parent| parent_node_query.get(parent.get()).ok())
+                    .map(|parent_node| parent_node.size().x)
+                    .unwrap_or(0.)
+            };
+
+            if let Some(border_color) =
+                maybe_border_color.filter(|border_color| border_color.a() != 0.)
+            {
                 if border_color.a() != 0. {
                     let parent_width = get_parent_width();
                     maybe_parent_width = parent_width.into();
-                    
+
                     // calculate border rects, ensuring no overlap
                     let left = resolve_thickness(style.border.left, parent_width);
                     let right = resolve_thickness(style.border.right, parent_width);
@@ -207,7 +207,8 @@ fn extract_uinode_borders(
                         if edge.min.x < edge.max.x && edge.min.y < edge.max.y {
                             extracted_uinodes.uinodes.push(ExtractedUiNode {
                                 stack_index,
-                                transform: transform * Mat4::from_translation(edge.center().extend(0.)),
+                                transform: transform
+                                    * Mat4::from_translation(edge.center().extend(0.)),
                                 color: **border_color,
                                 rect: Rect {
                                     max: edge.size(),
@@ -224,7 +225,7 @@ fn extract_uinode_borders(
                 }
             }
 
-            if let Some(outline) = maybe_outline.filter(|outline| outline.color.a() != 0.)  {  
+            if let Some(outline) = maybe_outline.filter(|outline| outline.color.a() != 0.) {
                 let parent_width = maybe_parent_width.unwrap_or_else(get_parent_width);
                 let left = resolve_thickness(outline.thickness.left, parent_width);
                 let right = resolve_thickness(outline.thickness.right, parent_width);
