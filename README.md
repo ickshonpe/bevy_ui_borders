@@ -7,27 +7,37 @@
 
 ![image](borders_example.png)
 
-* Version 0.2 supports Bevy 0.10, 0.1 supports Bevy 0.9.
+* A Bevy plugin that adds border and outline rendering to UI nodes.
 
-* Same implementation as this borders PR: https://github.com/bevyengine/bevy/pull/7795
+* Versions 0.2+ support Bevy 0.10, 0.1 supports Bevy 0.9.
 
 * No support for border styles due to the limitations of the current Bevy UI renderer.
 
-* Version 0.2 adds support for outlines. Outlines are similar to borders but drawn outside the node on the edge of the node boundary
-and occupy no space in the UI layout.
 
 #
 ## Usage
 
-Add the dependency to your bevy project:
+Add the dependency to your Bevy project:
 
 ```
 cargo add bevy_ui_borders
 ```
 
+## Components
+
+* `BorderColor`: Defines the color of a UI node's border.
+* `Outline`: Specifies the color and thickness of the outline around the UI node's border.
+
+## Bundles
+* `BorderedNodeBundle`: A bundle for creating UI nodes with a border and outline.
+* `BorderBundle`: A bundle for adding border and outline components to an existing UI node.
+
+## Plugin
+`BordersPlugin` should be added to your Bevy app to enable bordered UI nodes.
+
 To display a bordered UI node:
 * Add the `BordersPlugin` plugin to your app.
-* Spawn an entity with a `BorderBundle` and a `NodeBundle` where the `border` field of its `Style` component is set to a non-zero thickness.
+* Spawn an entity with a `BorderColor` component and a `NodeBundle` where the `border` field of its `Style` component is set to a non-zero thickness.
 
 ## Example
 
@@ -36,6 +46,14 @@ To draw a white UI node with a red border:
 ```rust
 use bevy::prelude::*;
 use bevy_ui_borders::*;
+
+fn main() {
+    App::new()
+        .add_plugins(DefaultPlugins)
+        .add_plugin(BordersPlugin)
+        .add_startup_system(spawn_example)
+        .run();
+}
 
 fn spawn_example(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default());
@@ -50,20 +68,11 @@ fn spawn_example(mut commands: Commands) {
             background_color: Color::WHITE.into(),
             ..Default::default()
         },
-        BorderBundle::new(Color::RED),
+        BorderColor(Color::RED),
     ));       
 }
-
-fn main() {
-    App::new()
-        .add_plugins(DefaultPlugins)
-        .add_plugin(BordersPlugin)
-        .add_startup_system(spawn_example)
-        .run();
-}
 ```
-* You also use `BorderedNodeBundle` and `OutlinedNodeBundle` instead of of a `NodeBudle` bundle tuple
-to spawn bordered and outlined UI nodes.
+
 
 #
 ## Examples
@@ -72,4 +81,5 @@ to spawn bordered and outlined UI nodes.
 cargo --run --example minimal
 cargo --run --example tiles
 cargo --run --example outlines
+cargo --run --example stress
 ```

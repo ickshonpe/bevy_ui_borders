@@ -1,6 +1,6 @@
 [package]
 name = "bevy_ui_borders"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 keywords = ["bevy", "texture", "graphics", "ui", "games"]
@@ -10,9 +10,9 @@ readme = "README.md"
 description = "Bevy UI borders plugin"
 
 [dependencies.bevy]
-version = "0.10.0"
+version = "0.10"
 default_features= false
 features = ["bevy_ui", "bevy_render"]
 
 [dev-dependencies]
-bevy = "0.10.0"
+bevy = "0.10"

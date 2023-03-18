@@ -7,133 +7,13 @@ use bevy::ui::UiStack;
 
 use crate::resolve_thickness;
 
-/// Outline around the UI node's border that doesn't occupy any space in the UI layout.
-#[derive(Component, Copy, Clone, Default, Debug, Deref, DerefMut, Reflect)]
-#[reflect(Component)]
-pub struct Outline(pub UiRect);
-
-impl Outline {
-    pub fn all(thickness: Val) -> Self {
-        Self(UiRect::all(thickness))
-    }
-}
-
-impl From<UiRect> for Outline {
-    fn from(value: UiRect) -> Self {
-        Self(value)
-    }
-}
-
-/// The color of the outline
-#[derive(Component, Copy, Clone, Default, Debug, Deref, DerefMut, Reflect)]
-#[reflect(Component)]
-pub struct OutlineColor(pub Color);
-
-impl From<Color> for OutlineColor {
-    fn from(color: Color) -> Self {
-        Self(color)
-    }
-}
-
-/// Stores the calculated outline geometry
-///
-/// This is automatically managed by the borders plugin.
-#[derive(Component, Copy, Clone, Debug, Default, Reflect)]
-#[reflect(Component)]
-pub struct CalculatedOutline {
-    /// The four rects that make up the outline
-    pub edges: [Option<Rect>; 4],
-}
-
-#[derive(Bundle, Clone, Default)]
-pub struct OutlineBundle {
-    pub outline: Outline,
-    pub outline_color: OutlineColor,
-    pub calculated_outline: CalculatedOutline,
-}
-
-impl OutlineBundle {
-    pub fn new(edges: UiRect, color: Color) -> OutlineBundle {
-        Self {
-            outline: edges.into(),
-            outline_color: OutlineColor(color),
-            calculated_outline: CalculatedOutline::default(),
-        }
-    }
-}
-
-/// The basic UI node but with a Border and Outline
-///
-/// Useful as a container for a variety of child nodes.
-#[derive(Bundle, Clone, Debug)]
-pub struct OutlinedNodeBundle {
-    /// Describes the logical size of the node
-    pub node: Node,
-    /// Describes the style including flexbox settings
-    pub style: Style,
-    /// The background color, which serves as a "fill" for this node
-    pub background_color: BackgroundColor,
-    /// Whether this node should block interaction with lower nodes
-    pub focus_policy: FocusPolicy,
-    /// The transform of the node
-    ///
-    /// This field is automatically managed by the UI layout system.
-    /// To alter the position of the `nodebundle`, use the properties of the [`Style`] component.
-    pub transform: Transform,
-    /// The global transform of the node
-    ///
-    /// This field is automatically managed by the UI layout system.
-    /// To alter the position of the `NodeBundle`, use the properties of the [`Style`] component.
-    pub global_transform: GlobalTransform,
-    /// Describes the visibility properties of the node
-    pub visibility: Visibility,
-    /// Algorithmically-computed indication of whether an entity is visible and should be extracted for rendering
-    pub computed_visibility: ComputedVisibility,
-    /// Indicates the depth at which the node should appear in the UI
-    pub z_index: ZIndex,
-    /// The color of the node's border.
-    pub border_color: crate::BorderColor,
-    /// Stores the calculated border geometry
-    /// This is automatically managed by the borders plugin.
-    pub calculated_border: crate::CalculatedBorder,
-    /// The thicknesses of the four sides of the outline
-    pub outline: Outline,
-    /// The color of the outline
-    pub outline_color: OutlineColor,
-    /// Stores the calculated outline geometry
-    ///
-    /// This is automatically managed by the borders plugin.
-    pub calculated_outline: CalculatedOutline,
-}
-
-impl Default for OutlinedNodeBundle {
-    fn default() -> Self {
-        OutlinedNodeBundle {
-            // Transparent background
-            background_color: Color::NONE.into(),
-            node: Default::default(),
-            style: Default::default(),
-            focus_policy: Default::default(),
-            transform: Default::default(),
-            global_transform: Default::default(),
-            visibility: Default::default(),
-            computed_visibility: Default::default(),
-            z_index: Default::default(),
-            border_color: Color::WHITE.into(),
-            calculated_border: Default::default(),
-            outline: Default::default(),
-            outline_color: Default::default(),
-            calculated_outline: Default::default(),
-        }
-    }
-}
 
 /// Generates the outline geometry
 #[allow(clippy::type_complexity)]
 pub(crate) fn calculate_outlines(
     parent_query: Query<&Node, With<Children>>,
     mut outline_query: Query<
-        (&Node, &Outline, &mut CalculatedOutline, Option<&Parent>),
+        (&Node, &Outline, Option<&Parent>),
         (Or<(Changed<Node>, Changed<Outline>, Changed<Parent>)>,),
     >,
 ) {
@@ -195,8 +75,7 @@ pub(crate) fn extract_uinode_outlines(
         Query<
             (
                 &GlobalTransform,
-                &CalculatedOutline,
-                &OutlineColor,
+                &Outline,
                 &ComputedVisibility,
                 Option<&CalculatedClip>,
             ),
@@ -207,7 +86,7 @@ pub(crate) fn extract_uinode_outlines(
     let image = bevy::render::texture::DEFAULT_IMAGE_HANDLE.typed();
 
     for (stack_index, entity) in ui_stack.uinodes.iter().enumerate() {
-        if let Ok((global_transform, calculated_outline, outline_color, visibility, clip)) =
+        if let Ok((global_transform, outline, visibility, clip)) =
             uinode_query.get(*entity)
         {
             // Skip invisible nodes

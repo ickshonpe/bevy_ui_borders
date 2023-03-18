@@ -110,12 +110,8 @@ fn setup(mut commands: Commands) {
                     background_color: Color::BLUE.into(),
                     ..Default::default()
                 },
-                BorderBundle::default(),
-                OutlineBundle {
-                    outline: Outline::all(Val::Px(5.)),
-                    outline_color: Color::BLUE.into(),
-                    ..Default::default()
-                },
+                    BorderColor(Color::WHITE),
+                    Outline::all(Color::BLUE, Val::Px(5.)),
             ))
             .add_child(inner_spot)
             .id();
